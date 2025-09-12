@@ -7,6 +7,8 @@ services:
       - "3001:3001" # Expose our server's port 3001 to the outside
     volumes:
       - ./server:/usr/src/app # Sync our local 'server' folder with the container
+    env_file:
+      - ./.env
     environment:
       DATABASE_URL: ${DATABASE_URL} # Pass our .env variable into the container
     depends_on:
