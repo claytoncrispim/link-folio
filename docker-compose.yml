@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # Our Node.js Application Service
