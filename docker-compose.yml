@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Our Node.js Application Service
+  app:
+    build: ./server # Build a Docker image from the 'server' folder
+    ports:
+      - "3001:3001" # Expose our server's port 3001 to the outside
+    volumes:
+      - ./server:/usr/src/app # Sync our local 'server' folder with the container
+    environment:
+      DATABASE_URL: ${DATABASE_URL} # Pass our .env variable into the container
+    depends_on:
+      - db # Don't start this 'app' service until the 'db' service is ready
+
+  # Our PostgreSQL Database Service
+  db:
+    image: postgres:15 # Use the official PostgreSQL version 15 image
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: linkfolio
+    ports:
+      - "5432:5432" # Expose the database port
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
