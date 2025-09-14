@@ -4,7 +4,8 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client'; // Import PrismaClient to talk to our database
 import bcrypt from 'bcrypt'; // Import bcrypt to handle passowrds
-import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken'; // Import JWT for authorization and authentication
+import { protect } from './middleware/authMiddleware.js';
 
 
 const prisma = new PrismaClient(); // Create an instance of the client
@@ -98,6 +99,9 @@ app.post('/api/auth/login', async (req, res) => {
       userId: user.id, // Include non-sensitive user info in the token
     };
 
+    // --- SANITY CHECK ---
+    console.log('[LOGIN] Signing token with secret:', process.env.JWT_SECRET);
+
     const token = jwt.sign(
       payload,
       process.env.JWT_SECRET,
@@ -114,6 +118,18 @@ app.post('/api/auth/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
+});
+
+// --- PROTECTED "VIP LOUNGE" ROUTE ---
+// This route is protected by our 'protect' middleware.
+// A request must pass the security check in 'protect' before this function will ever run.
+app.get('/api/profile', protect, (req, res) => {
+  // Because the 'protect' middleware ran successfully,
+  // we now have access to the user's data on `req.user`.
+  res.status(200).json({
+    message: 'Welcome to the VIP lounge!',
+    user: req.user,
+  });
 });
 
 // --- Test Route ---
