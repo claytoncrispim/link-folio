@@ -1,5 +1,5 @@
 // This line is good practice for running the server outside of Docker
-import 'dotenv/config';
+// import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client'; // Import PrismaClient to talk to our database
@@ -17,7 +17,20 @@ const app = express();
 const port = 3001;
 
 // --- Middleware ---
-app.use(cors());
+// Configure CORS to allow requests only from our client's origin
+const corsOptions = {
+  // origin: process.env.CLIENT_ORIGIN_URL,
+  origin: 'https://turbo-space-memory-4wj4v94j7v5cjx64-5173.app.github.dev',
+  optionsSuccessStatus: 200, // For legacy browser support
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+
+// This is a universal preflight handler.
+// It ensures that ANY OPTIONS request gets a successful response with our CORS headers.
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 // --- USER REGISTRATION ENDPOINT ---

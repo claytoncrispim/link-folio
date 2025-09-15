@@ -1,0 +1,29 @@
+{
+  "name": "LinkFolio Full-Stack Environment",
+
+  // 1. Forward all the ports we use.
+  "forwardPorts": [5173, 3001, 5432],
+
+  // 2. This is the magic part! We define attributes for each port.
+  "portsAttributes": {
+    "5173": {
+      "label": "Client (Vite)",
+      "onAutoForward": "openBrowser",
+      "access": "public" // <-- Set visibility to public
+    },
+    "3001": {
+      "label": "Server (Express)",
+      "onAutoForward": "silent",
+      "access": "public" // <-- Set visibility to public
+    },
+    "5432": {
+      "label": "Database (Postgres)",
+      "onAutoForward": "silent",
+      "access": "public" // <-- Set visibility to public
+    }
+  },
+
+  // 3. A quality-of-life bonus! After the Codespace is built,
+  // automatically install dependencies for both apps.
+  "postCreateCommand": "cd client && npm install && cd ../server && npm install"
+}
