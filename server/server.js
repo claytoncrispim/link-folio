@@ -83,6 +83,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 // --- USER LOGIN ENDPOINT ---
+// Authentication
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -143,6 +144,42 @@ app.get('/api/profile', protect, (req, res) => {
     message: 'Welcome to the VIP lounge!',
     user: req.user,
   });
+});
+
+// --- LINKS API ENDPOINTS ---
+
+// @desc    Create a new link
+// @route   POST /api/links
+// @access  Private (requires authentication)
+app.post('/api/links', protect, async (req, res) => {
+  try {
+    const { title, url } = req.body;
+
+    // 1. Simple validation
+    if (!title || !url) {
+      return res.status(400).json({ error: 'Title and URL are required.' });
+    }
+
+    // 2. Get the logged-in user's ID from our 'protect' middleware.
+    // This is the magic! The middleware already found the user and attached them to the request.
+    const ownerId = req.user.id;
+
+    // 3. Use Prisma to create the new link and connect it to the owner.
+    const newLink = await prisma.link.create({
+      data: {
+        title,
+        url,
+        ownerId: ownerId, // This creates the crucial connection in the database
+      },
+    });
+
+    // 4. Send a 201 Created status and the new link object back to the client.
+    res.status(201).json(newLink);
+
+  } catch (error) {
+    console.error('Error creating link:', error);
+    res.status(500).json({ error: 'An internal server error occurred.' });
+  }
 });
 
 // --- Test Route ---
