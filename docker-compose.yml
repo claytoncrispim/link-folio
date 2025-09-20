@@ -7,6 +7,7 @@ services:
       - "3001:3001" # Expose our server's port 3001 to the outside
     volumes:
       - ./server:/usr/src/app # Sync our local 'server' folder with the container
+      - /usr/src/app/node_modules # <-- ADD THIS LINE
     env_file:
       - ./.env
     environment:
