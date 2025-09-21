@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
 
 // A simple component for our home page
 const HomePage = () => (
@@ -15,23 +16,6 @@ const HomePage = () => (
     </div>
   </div>
 );
-
-// A placeholder for our protected dashboard page
-const DashboardPage = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div className="text-center p-10">
-      <h1 className="text-4xl font-bold">Dashboard</h1>
-      <p className="mt-4">Welcome, {user?.email}!</p>
-      <button 
-        onClick={logout}
-        className="mt-6 px-4 py-2 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
-      >
-        Logout
-      </button>
-    </div>
-  );
-};
 
 // A special component to protect routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
