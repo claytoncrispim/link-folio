@@ -10,7 +10,8 @@ A full-stack, authenticated link-sharing application built with the PERN stack (
 LinkFolio is a complete, single-user "link-in-bio" style application. After registering and logging in, a user can manage a personal list of links on a secure dashboard. This project was built from the ground up to demonstrate a full range of full-stack development skills, from database design and secure API creation to building a dynamic, interactive frontend with React.
 
 The entire development environment is containerized using Docker and Docker Compose, ensuring a consistent and reproducible setup for both development and a potential future deployment.
-✨ Key Features
+
+## ✨ Key Features
 
     Secure User Authentication: Full registration and login system using JWTs (JSON Web Tokens) for secure, stateless sessions.
 
