@@ -73,44 +73,44 @@ You must have Docker and Docker Compose installed on your local machine.
 
 Installation & Launch
 
-    1. Clone the repository
+1. Clone the repository
 ```sh 
 git clone https://github.com/claytoncrispim/link-folio.git
 ```
 
-    2. Navigate to the project directory
+2. Navigate to the project directory
 ```sh
     cd link-folio
 ```
-    3. Create your local environment file
 
-        Create a new file named .env in the root of the project.
+3. Create your local environment file
+```sh 
+    # 3.1. Create a new file named .env in the root of the project.
+    # 3.2. Add the following variables. You can generate a new random string for the JWT_SECRET.
 
-        Add the following variables. You can generate a new random string for the JWT_SECRET.
-```sh
     DATABASE_URL="postgresql://user:password@db:5432/linkfolio?schema=public"
     JWT_SECRET=YourSuperLongAndRandomSecretStringGoesHere
     CLIENT_ORIGIN_URL=http://localhost:5173
 ```
-    4. Launch the Docker Environment
+4. Launch the Docker Environment
 
-        This single command will build the server image, start the database, and launch the application.
+This single command will build the server image, start the database, and launch the application.
 ```sh
     docker compose up --build
 ```
-    5. Launch the Frontend Client
+5. Launch the Frontend Client
 
-        Open a second terminal.
+Open a second terminal.
 
-        Navigate into the client directory and start the Vite dev server.
+Navigate into the client directory and start the Vite dev server.
 ```sh
     cd client
     npm install
     npm run dev
 ```
-    6. Open the app
+6. Open the app
 
-        Open your browser and navigate to http://localhost:5173. You can now register, log in, and use the application!
+Open your browser and navigate to http://localhost:5173. You can now register, log in, and use the application!
 
 🔗 Live Demo
 
