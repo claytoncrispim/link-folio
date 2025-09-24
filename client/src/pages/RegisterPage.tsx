@@ -1,44 +1,50 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import apiClient from '../apiClient'; // <-- Use our new API client
 
 const RegisterPage = () => {
+  // --- STATE MANAGEMENT ---
+  // We track the user's input for email and password.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // We also have state for holding success or error messages.
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  // --- HOOKS ---
+  // This hook lets us redirect the user after they register.
   const navigate = useNavigate();
 
+  // This function runs when the user clicks the "Register" button.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Stop the page from reloading.
+    // Reset messages from any previous attempts.
     setError(null);
     setSuccess(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      }
-    );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // If the server returns an error (like "user already exists"), show it
-        throw new Error(data.error || 'Failed to register');
-      }
+      // --- API CALL ---
+      // Make a POST request to our '/api/users' endpoint to create a new user.
+      await apiClient.post('/users', { email, password });
       
-      // On success, show a message and redirect to the login page
+      // --- SUCCESS HANDLING ---
+      // If the request was successful, show a success message.
       setSuccess('Registration successful! Please log in.');
+      
+      // Wait for 2 seconds before redirecting to give the user time to read the message.
       setTimeout(() => {
         navigate('/login');
-      }, 2000); // Wait 2 seconds before redirecting
+      }, 2000);
 
     } catch (err: any) {
-      setError(err.message);
+      // --- ERROR HANDLING ---
+      // If the API call fails (e.g., user already exists), we get the error
+      // from the server's response and display it to the user.
+      setError(err.response?.data?.error || err.message || 'Failed to register');
     }
   };
 
+  // --- JSX RENDER ---
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
@@ -74,6 +80,7 @@ const RegisterPage = () => {
             </button>
           </div>
         </form>
+        {/* Conditionally render our error and success messages */}
         {error && <p className="mt-4 text-sm text-center text-red-600">{error}</p>}
         {success && <p className="mt-4 text-sm text-center text-green-600">{success}</p>}
         <p className="mt-4 text-sm text-center text-gray-600">

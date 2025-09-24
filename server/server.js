@@ -7,7 +7,10 @@ import { protect } from './middleware/authMiddleware.js';
 
 const prisma = new PrismaClient();
 const app = express();
-const port = 3001;
+
+// Use the port from the environment variables for production (e.g., on Render),
+// or fall back to 3001 for local development.
+const port = process.env.PORT || 3001;
 
 // --- Middleware ---
 const corsOptions = {
@@ -90,7 +93,7 @@ app.post('/api/links', protect, async (req, res) => {
   }
 });
 
-// --- ADD THIS MISSING ENDPOINT ---
+
 // @desc    Get all links for the logged-in user
 // @route   GET /api/links
 // @access  Private
@@ -107,7 +110,7 @@ app.get('/api/links', protect, async (req, res) => {
   }
 });
 
-// --- AND ADD THIS MISSING ENDPOINT ---
+
 // @desc    Delete a specific link
 // @route   DELETE /api/links/:id
 // @access  Private
@@ -132,6 +135,6 @@ app.delete('/api/links/:id', protect, async (req, res) => {
 
 
 // --- Server Listener ---
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on http://localhost:${port}`);
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
 });

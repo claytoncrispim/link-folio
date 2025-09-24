@@ -1,47 +1,58 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../apiClient'; // <-- Our custom API client that simplifies requests
 
 const LoginPage = () => {
+  // --- STATE MANAGEMENT ---
+  // We use useState to keep track of what the user types in the input fields.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // This state holds any error messages we want to show to the user.
   const [error, setError] = useState<string | null>(null);
-  const { login } = useAuth(); // Get the login function from our context
+
+  // --- HOOKS ---
+  // useAuth gives us access to the login function from our global AuthContext.
+  const { login } = useAuth();
+  // useNavigate allows us to programmatically redirect the user to other pages.
   const navigate = useNavigate();
 
+  // This function runs when the user submits the form.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault(); // Prevents the browser from doing a full page refresh.
+    setError(null); // Clear any previous errors.
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      // --- API CALL ---
+      // We use our apiClient to make a POST request to the server's login endpoint.
+      // It's clean because it handles the full URL and content type for us.
+      const response = await apiClient.post('/api/auth/login', { email, password });
 
-      const data = await response.json();
+      // With Axios (which our apiClient uses), the server's JSON response is on the .data property.
+      const data = response.data;
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to log in');
-      }
-
-      // We need user data for the context, but our login endpoint doesn't return it.
-      // Let's decode it from the token. This is a common pattern.
+      // --- DECODE TOKEN & UPDATE CONTEXT ---
+      // We need user data for our context. We can decode it from the JWT payload.
+      // The payload is the middle part of the token (between the two dots).
       const decodedToken = JSON.parse(atob(data.token.split('.')[1]));
-      const userData = { id: decodedToken.userId, email: email }; // We'll assume email is correct
+      const userData = { id: decodedToken.userId, email: email };
 
-      // On successful login, call the login function from our context
+      // Call the login function from our AuthContext. This updates the global state
+      // and saves the token to localStorage, making the user "logged in" across the app.
       login(data.token, userData);
       
-      // Redirect to the dashboard
+      // --- NAVIGATION ---
+      // On successful login, redirect the user to their dashboard.
       navigate('/dashboard');
 
     } catch (err: any) {
-      setError(err.message);
+      // If the server sends an error (e.g., "Invalid credentials"), we display it.
+      setError(err.response?.data?.error || err.message || 'Failed to log in');
     }
   };
 
+  // --- JSX RENDER ---
+  // This is the HTML structure of our login form.
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
@@ -77,6 +88,7 @@ const LoginPage = () => {
             </button>
           </div>
         </form>
+        {/* Conditionally render the error message if it exists */}
         {error && <p className="mt-4 text-sm text-center text-red-600">{error}</p>}
         <p className="mt-4 text-sm text-center text-gray-600">
           Don't have an account?{' '}
