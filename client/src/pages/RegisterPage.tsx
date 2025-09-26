@@ -1,50 +1,47 @@
-import React, { useState } from 'react';
+// We only need specific hooks from React, not the whole library.
+import { useState } from 'react';
+// These hooks from React Router help us navigate between pages.
 import { useNavigate, Link } from 'react-router-dom';
-import apiClient from '../apiClient'; // <-- Use our new API client
+// This is our custom, pre-configured Axios instance for talking to the server.
+import apiClient from '../apiClient';
 
 const RegisterPage = () => {
   // --- STATE MANAGEMENT ---
-  // We track the user's input for email and password.
+  // 'useState' gives our component a "memory" for values that can change.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // We also have state for holding success or error messages.
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
-  // --- HOOKS ---
-  // This hook lets us redirect the user after they register.
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // This function lets us programmatically change pages.
 
-  // This function runs when the user clicks the "Register" button.
+  // --- EVENT HANDLER ---
+  // This function runs when the user submits the form.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Stop the page from reloading.
-    // Reset messages from any previous attempts.
-    setError(null);
+    e.preventDefault(); // Prevents the browser from doing a full page reload on submit.
+    setError(null);     // Clear any previous errors.
     setSuccess(null);
 
     try {
-      // --- API CALL ---
-      // Make a POST request to our '/api/users' endpoint to create a new user.
-      await apiClient.post('/users', { email, password });
+      // --- THE API CALL ---
+      // We use our apiClient to send a POST request to the server.
+      // THE FIX: The path MUST include the "/api" prefix our server expects.
+      await apiClient.post('/api/users', { email, password });
       
-      // --- SUCCESS HANDLING ---
-      // If the request was successful, show a success message.
+      // If the request succeeds, we show a success message...
       setSuccess('Registration successful! Please log in.');
-      
-      // Wait for 2 seconds before redirecting to give the user time to read the message.
+      // ...and then redirect to the login page after a short delay.
       setTimeout(() => {
         navigate('/login');
       }, 2000);
 
-    } catch (err: any) {
-      // --- ERROR HANDLING ---
-      // If the API call fails (e.g., user already exists), we get the error
-      // from the server's response and display it to the user.
-      setError(err.response?.data?.error || err.message || 'Failed to register');
+    } catch (err: any) in {
+      // If anything goes wrong, we catch the error and display it to the user.
+      setError(err.response?.data?.error || 'Failed to register');
     }
   };
 
-  // --- JSX RENDER ---
+  // --- JSX (The Component's UI) ---
+  // This is the HTML structure of our page.
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
@@ -80,7 +77,6 @@ const RegisterPage = () => {
             </button>
           </div>
         </form>
-        {/* Conditionally render our error and success messages */}
         {error && <p className="mt-4 text-sm text-center text-red-600">{error}</p>}
         {success && <p className="mt-4 text-sm text-center text-green-600">{success}</p>}
         <p className="mt-4 text-sm text-center text-gray-600">

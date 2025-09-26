@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import apiClient from '../apiClient';
 
-// Define the shape of a Link object for TypeScript
+// Define the shape of the data this component will pass back up to its parent.
 type Link = {
   id: string;
   title: string;
@@ -9,85 +9,71 @@ type Link = {
   createdAt: string;
 };
 
-// Define the props our component will accept, including the callback function
-interface CreateLinkFormProps {
+// Define the shape of the 'props' this component accepts.
+// It expects one prop: a function named 'onLinkCreated'.
+type CreateLinkFormProps = {
   onLinkCreated: (newLink: Link) => void;
-}
+};
 
-const CreateLinkForm: React.FC<CreateLinkFormProps> = ({ onLinkCreated }) => {
+const CreateLinkForm = ({ onLinkCreated }: CreateLinkFormProps) => {
+  // --- STATE MANAGEMENT ---
+  // Local state just for managing the form inputs.
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
 
+  // --- EVENT HANDLER ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!token) {
-      setError('You must be logged in to create a link.');
+
+    // Basic validation to ensure inputs aren't empty.
+    if (!title || !url) {
+      setError('Both title and URL are required.');
       return;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/links`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ title, url }),
-      });
+      // --- THE API CALL ---
+      // THE FIX: The path MUST include the "/api" prefix.
+      const response = await apiClient.post('/api/links', { title, url });
+      
+      // Call the function that was passed down from the parent (DashboardPage).
+      // This sends the newly created link data back up to the parent.
+      onLinkCreated(response.data);
 
-      const newLink: Link = await response.json();
-
-      if (!response.ok) {
-        throw new Error((newLink as any).error || 'Failed to create link');
-      }
-
-      // On success, call the parent's function with the new link data
-      onLinkCreated(newLink);
-
-      // Clear the form for the next entry
+      // Clear the form fields for the next entry.
       setTitle('');
       setUrl('');
+
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.error || 'Failed to create link.');
     }
   };
 
+  // --- JSX (The Component's UI) ---
   return (
-    <div className="mb-8 p-6 bg-white shadow rounded-lg">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Create a New Link</h2>
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="e.g., My Portfolio"
-          />
-        </div>
-        <div>
-          <label htmlFor="url" className="block text-sm font-medium text-gray-700">URL</label>
-          <input
-            id="url"
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            required
-            className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="https://example.com"
-          />
-        </div>
-        <button type="submit" className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <div className="mb-8 bg-white p-6 rounded-lg shadow">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
+        <input
+          type="text"
+          placeholder="Link Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+        <input
+          type="url"
+          placeholder="https://example.com"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+        <button type="submit" className="px-6 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
           Add Link
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 };

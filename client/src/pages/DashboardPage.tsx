@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import CreateLinkForm from '../components/CreateLinkForm';
 import apiClient from '../apiClient';
 
+// A 'type' defines the shape of our data. It helps prevent bugs.
 type Link = {
   id: string;
   title: string;
@@ -11,74 +12,69 @@ type Link = {
 };
 
 const DashboardPage = () => {
-  // --- CONTEXT ---
-  // We now pull the isAuthLoading "traffic light" state from our context.
+  // --- CONTEXT & STATE ---
+  // Get everything we need from our global AuthContext.
   const { user, token, logout, isAuthLoading } = useAuth();
   
-  // --- STATE ---
+  // Local state for this component to manage the links and loading status.
   const [links, setLinks] = useState<Link[]>([]);
-  // To avoid confusion, we'll rename this state to be more specific.
-  // It tracks the loading of *link data*, not the auth state.
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true); // Manages loading state for the links data specifically
   const [error, setError] = useState<string | null>(null);
 
-  // --- DATA FETCHING EFFECT ---
+  // --- DATA FETCHING (EFFECT) ---
+  // 'useEffect' runs code after the component renders. It's for "side effects" like fetching data.
   useEffect(() => {
     const fetchLinks = async () => {
-      // --- NEW GUARD CLAUSES (The Traffic Light Logic) ---
+      // Don't do anything if the auth context is still loading its state.
+      if (isAuthLoading) return;
 
-      // 1. If the auth state is still being checked (light is red), do nothing.
-      //    This effect will re-run automatically when isAuthLoading becomes false.
-      if (isAuthLoading) {
-        return;
-      }
-      
-      // 2. If the auth check is finished AND there's no token, we know for sure
-      //    the user is logged out. We can stop loading and just show an empty dashboard.
+      // If auth is ready but there's no token, we know the user isn't logged in.
       if (!token) {
         setIsDataLoading(false);
         return;
       }
-
-      // If we get past the guards, we know the light is green and we have a token.
-      // It's now safe to make the API call.
       try {
+        // --- THE API CALL ---
+        // THE FIX: The path MUST include the "/api" prefix.
         const response = await apiClient.get('/api/links');
-        setLinks(response.data);
+        setLinks(response.data); // Update our state with the fetched links.
       } catch (err: any) {
         setError(err.response?.data?.error || err.message);
       } finally {
+        // This runs whether the fetch succeeded or failed.
         setIsDataLoading(false);
       }
     };
-
     fetchLinks();
-    // This effect now depends on both the token AND our new traffic light.
-  }, [token, isAuthLoading]);
+  }, [token, isAuthLoading]); // This effect re-runs ONLY if the token or auth loading status changes.
 
-  // --- EVENT HANDLERS (No changes needed here) ---
+  // --- CALLBACKS & HANDLERS ---
+  // This function is passed down to the CreateLinkForm component.
   const handleLinkCreated = (newLink: Link) => {
+    // This provides an "optimistic update" - the UI updates instantly.
     setLinks(prevLinks => [newLink, ...prevLinks]);
   };
 
   const handleDelete = async (linkId: string) => {
     const originalLinks = links;
-    setLinks(links.filter(link => link.id !== linkId));
+    setLinks(links.filter(link => link.id !== linkId)); // Optimistically remove from UI.
     try {
+      // --- THE API CALL ---
+      // THE FIX: The path MUST include the "/api" prefix.
       await apiClient.delete(`/api/links/${linkId}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete link.');
-      setLinks(originalLinks);
+      setLinks(originalLinks); // If the delete fails, put the link back in the UI.
     }
   };
 
-  // --- CONDITIONAL RENDER ---
-  // The main loading indicator now waits for BOTH auth to be ready AND data to be fetched.
+  // --- CONDITIONAL RENDERING ---
+  // Show a loading message while we wait for auth state OR data to be ready.
   if (isAuthLoading || isDataLoading) {
     return <div className="text-center p-10">Loading...</div>;
   }
 
-  // --- JSX RENDER (No changes needed here) ---
+  // --- JSX (The Component's UI) ---
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
