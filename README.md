@@ -1,10 +1,12 @@
-LinkFolio - Your Personal Link Hub
+# LinkFolio - Your Personal Link Hub
 
 ## 📸 Screenshot
 
 ![A screenshot of the LinkFolio application dashboard, showing a form to create a new link and a list of existing links below it.](assets/screenshot.png)
 
 A full-stack, authenticated link-sharing application built with the PERN stack (PostgreSQL, Express, React, Node.js) and containerized with Docker.
+
+## 🚀 [Live Demo](https://link-folio-nu.vercel.app/)
 
 ## 📖 About The Project
 
