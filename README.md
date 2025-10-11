@@ -16,21 +16,21 @@ The entire development environment is containerized using Docker and Docker Comp
 
 ## ✨ Key Features
 
-    Secure User Authentication: Full registration and login system using JWTs (JSON Web Tokens) for secure, stateless sessions.
+Secure User Authentication: Full registration and login system using JWTs (JSON Web Tokens) for secure, stateless sessions.
 
-    Password Hashing: User passwords are never stored in plain text, using bcrypt for industry-standard hashing.
+Password Hashing: User passwords are never stored in plain text, using bcrypt for industry-standard hashing.
 
-    Protected API Routes: Middleware ensures that only authenticated users can access or modify their own data.
+Protected API Routes: Middleware ensures that only authenticated users can access or modify their own data.
 
-    Full CRUD Functionality: Users can Create, Read, and Delete their personal links.
+Full CRUD Functionality: Users can Create, Read, and Delete their personal links.
 
-    Relational Database: A PostgreSQL database with a clear relational schema connecting users to their links.
+Relational Database: A PostgreSQL database with a clear relational schema connecting users to their links.
 
-    Dynamic React UI: A client-side application built with React, featuring hooks (useState, useEffect, useContext) for state management and interactivity.
+Dynamic React UI: A client-side application built with React, featuring hooks (useState, useEffect, useContext) for state management and interactivity.
 
-    Global State Management: React's Context API is used to manage the user's authentication status across the entire application.
+Global State Management: React's Context API is used to manage the user's authentication status across the entire application.
 
-    Containerized Environment: The entire application (Node.js server and PostgreSQL database) is managed by Docker Compose for a consistent and isolated development environment.
+Containerized Environment: The entire application (Node.js server and PostgreSQL database) is managed by Docker Compose for a consistent and isolated development environment.
 
 ## 🛠️ Tech Stack
 
@@ -38,33 +38,33 @@ This project was built using the following technologies:
 
 ### Backend:
 
-    Node.js: JavaScript runtime environment.
+* Node.js: JavaScript runtime environment.
 
-    Express.js: Web framework for building the REST API.
+* Express.js: Web framework for building the REST API.
 
-    PostgreSQL: The relational database.
+* PostgreSQL: The relational database.
 
-    Prisma: Next-generation ORM for database access and migrations.
+* Prisma: Next-generation ORM for database access and migrations.
 
-    JWT (jsonwebtoken): For creating and verifying authentication tokens.
+* JWT (jsonwebtoken): For creating and verifying authentication tokens.
 
-    bcrypt: For hashing user passwords.
+* bcrypt: For hashing user passwords.
 
 ### Frontend:
 
-    React: JavaScript library for building the user interface.
+* React: JavaScript library for building the user interface.
 
-    Vite: Modern, fast frontend build tool.
+* Vite: Modern, fast frontend build tool.
 
-    TypeScript: For static typing and a more robust codebase.
+* TypeScript: For static typing and a more robust codebase.
 
-    React Router: For client-side routing.
+* React Router: For client-side routing.
 
-    Tailwind CSS: For styling the user interface.
+* Tailwind CSS: For styling the user interface.
 
 ### DevOps:
 
-    Docker & Docker Compose: For containerizing the application and database.
+Docker & Docker Compose: For containerizing the application and database.
 
 ## 🚀 Getting Started
 
@@ -115,7 +115,3 @@ Installation & Launch
 6. Open the app
 
     Open your browser and navigate to http://localhost:5173. You can now register, log in, and use the application!
-
-🔗 Live Demo
-
-(Deployment section to be added in the future)
