@@ -1,0 +1,7 @@
+{
+  "env": {
+    "DATABASE_URL": "postgresql://postgres:h.PxLDl%3F5v3%28%3A%60iM@34.77.204.56:5432/postgres?sslmode=require",
+    "JWT_SECRET": "3xGAAZDCRbPkM0Ek6KRMJ70CD0DlStX9",
+    "CLIENT_ORIGIN_URL": "http://localhost:5173"
+  }
+}

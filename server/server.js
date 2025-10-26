@@ -8,10 +8,6 @@ import { protect } from './middleware/authMiddleware.js';
 const prisma = new PrismaClient();
 const app = express();
 
-// Use the port from the environment variables for production (e.g., on Render),
-// or fall back to 3001 for local development.
-const port = process.env.PORT || 3001;
-
 // --- Middleware ---
 const corsOptions = {
   origin: process.env.CLIENT_ORIGIN_URL, // Use the variable for our local client
@@ -133,8 +129,16 @@ app.delete('/api/links/:id', protect, async (req, res) => {
   }
 });
 
+// Start the server ONLY if it's not being imported for testing
+// Use port from the environment variables for production or fall back to 10000 for local development
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 10000;
 
-// --- Server Listener ---
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
+  // --- Server Listener ---
+  app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+}
+
+// Export app for Supertest
+export default app;
