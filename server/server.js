@@ -3,7 +3,11 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import { protect } from './middleware/authMiddleware.js';
+
+dotenv.config({ path: '../.env', override: true });
+dotenv.config({ override: true });
 
 const prisma = new PrismaClient();
 const app = express();
@@ -16,6 +20,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 
 // --- Auth & User Routes ---

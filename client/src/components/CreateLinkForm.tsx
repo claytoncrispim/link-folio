@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import apiClient from '../apiClient';
+import apiClient, { useApiRequestStatus } from '../apiClient';
+import RequestStatusNotice from './RequestStatusNotice';
 
 // Define the shape of the data this component will pass back up to its parent.
 type Link = {
@@ -16,13 +17,20 @@ type CreateLinkFormProps = {
 };
 
 const CreateLinkForm = ({ onLinkCreated }: CreateLinkFormProps) => {
-  // --- STATE MANAGEMENT ---
-  // Local state just for managing the form inputs.
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const requestStatus = useApiRequestStatus();
 
-  // --- EVENT HANDLER ---
+  const buttonLabel = !isSubmitting
+    ? 'Add Link'
+    : requestStatus.phase === 'warming'
+      ? 'Waking server...'
+      : requestStatus.phase === 'retrying'
+        ? 'Retrying...'
+        : 'Saving...';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -34,46 +42,44 @@ const CreateLinkForm = ({ onLinkCreated }: CreateLinkFormProps) => {
     }
 
     try {
-      // --- THE API CALL ---
-      // THE FIX: The path MUST include the "/api" prefix.
+      setIsSubmitting(true);
       const response = await apiClient.post('/api/links', { title, url });
-      
-      // Call the function that was passed down from the parent (DashboardPage).
-      // This sends the newly created link data back up to the parent.
-      onLinkCreated(response.data);
 
-      // Clear the form fields for the next entry.
+      onLinkCreated(response.data);
       setTitle('');
       setUrl('');
-
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create link.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // --- JSX (The Component's UI) ---
   return (
-    <div className="mb-8 bg-white p-6 rounded-lg shadow">
+    <div className="mb-8 rounded-lg border border-gray-700 bg-gray-900 p-6 shadow">
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
         <input
           type="text"
           placeholder="Link Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          disabled={isSubmitting}
+          className="flex-grow rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-gray-100 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
         />
         <input
           type="url"
           placeholder="https://example.com"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          disabled={isSubmitting}
+          className="flex-grow rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-gray-100 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
         />
-        <button type="submit" className="px-6 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-          Add Link
+        <button type="submit" disabled={isSubmitting} className="px-6 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          {buttonLabel}
         </button>
       </form>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {isSubmitting && <RequestStatusNotice status={requestStatus} className="mt-4" compact />}
+      {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
     </div>
   );
 };

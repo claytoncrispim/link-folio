@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import CreateLinkForm from '../components/CreateLinkForm';
-import apiClient from '../apiClient';
+import RequestStatusNotice from '../components/RequestStatusNotice';
+import apiClient, { useApiRequestStatus } from '../apiClient';
 
 // A 'type' defines the shape of our data. It helps prevent bugs.
 type Link = {
@@ -12,23 +13,16 @@ type Link = {
 };
 
 const DashboardPage = () => {
-  // --- CONTEXT & STATE ---
-  // Get everything we need from our global AuthContext.
   const { user, token, logout, isAuthLoading } = useAuth();
-  
-  // Local state for this component to manage the links and loading status.
   const [links, setLinks] = useState<Link[]>([]);
-  const [isDataLoading, setIsDataLoading] = useState(true); // Manages loading state for the links data specifically
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestStatus = useApiRequestStatus();
 
-  // --- DATA FETCHING (EFFECT) ---
-  // 'useEffect' runs code after the component renders. It's for "side effects" like fetching data.
   useEffect(() => {
     const fetchLinks = async () => {
-      // Don't do anything if the auth context is still loading its state.
       if (isAuthLoading) return;
 
-      // If auth is ready but there's no token, we know the user isn't logged in.
       if (!token) {
         setIsDataLoading(false);
         return;
@@ -45,44 +39,51 @@ const DashboardPage = () => {
         setIsDataLoading(false);
       }
     };
-    fetchLinks();
-  }, [token, isAuthLoading]); // This effect re-runs ONLY if the token or auth loading status changes.
 
-  // --- CALLBACKS & HANDLERS ---
-  // This function is passed down to the CreateLinkForm component.
+    fetchLinks();
+  }, [token, isAuthLoading]);
+
   const handleLinkCreated = (newLink: Link) => {
-    // This provides an "optimistic update" - the UI updates instantly.
     setLinks(prevLinks => [newLink, ...prevLinks]);
   };
 
   const handleDelete = async (linkId: string) => {
     const originalLinks = links;
-    setLinks(links.filter(link => link.id !== linkId)); // Optimistically remove from UI.
+    setLinks(links.filter(link => link.id !== linkId));
     try {
-      // --- THE API CALL ---
-      // THE FIX: The path MUST include the "/api" prefix.
       await apiClient.delete(`/api/links/${linkId}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete link.');
-      setLinks(originalLinks); // If the delete fails, put the link back in the UI.
+      setLinks(originalLinks);
     }
   };
 
-  // --- CONDITIONAL RENDERING ---
-  // Show a loading message while we wait for auth state OR data to be ready.
   if (isAuthLoading || isDataLoading) {
-    return <div className="text-center p-10">Loading...</div>;
+    return (
+      <div className="px-4 py-12">
+        <div className="mx-auto max-w-xl rounded-2xl border border-gray-700 bg-gray-900 p-6 text-center shadow-sm">
+          {(requestStatus.phase === 'requesting' || requestStatus.phase === 'warming' || requestStatus.phase === 'retrying') && (
+            <RequestStatusNotice status={requestStatus} className="mb-4" />
+          )}
+          <p className="text-lg font-semibold text-gray-100">Loading your dashboard...</p>
+          <p className="mt-2 text-sm text-gray-400">
+            {requestStatus.phase === 'idle'
+              ? 'Fetching your saved links and preparing the session.'
+              : requestStatus.detail}
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  // --- JSX (The Component's UI) ---
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div>
+      <header className="border-b border-gray-700 bg-gray-900 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">My Links</h1>
+          <h1 className="text-xl font-bold text-gray-100">My Links</h1>
           <div>
-            <span className="text-sm text-gray-600 mr-4">Welcome, {user?.email}!</span>
-            <button 
+            <span className="text-sm text-gray-300 mr-4">Welcome, {user?.email}!</span>
+            <button
               onClick={logout}
               className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
             >
@@ -92,29 +93,30 @@ const DashboardPage = () => {
         </div>
       </header>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {requestStatus.phase !== 'idle' && <RequestStatusNotice status={requestStatus} className="mb-6" compact={requestStatus.phase === 'success'} />}
         <CreateLinkForm onLinkCreated={handleLinkCreated} />
-        {error && <p className="text-red-600 bg-red-100 p-3 rounded-md mb-6">{error}</p>}
-        <div className="bg-white shadow rounded-lg">
-          <ul className="divide-y divide-gray-200">
+        {error && <p className="mb-6 rounded-md border border-red-700 bg-red-950/60 p-3 text-red-300">{error}</p>}
+        <div className="rounded-lg border border-gray-700 bg-gray-900 shadow">
+          <ul className="divide-y divide-gray-800">
             {links.length > 0 ? (
               links.map((link) => (
                 <li key={link.id} className="p-4 flex justify-between items-center">
                   <div>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-600 hover:underline">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-400 hover:underline">
                       {link.title}
                     </a>
-                    <p className="text-sm text-gray-500">{link.url}</p>
+                    <p className="text-sm text-gray-400">{link.url}</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleDelete(link.id)}
-                    className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 rounded-full hover:bg-red-200"
+                    className="rounded-full bg-red-900/60 px-3 py-1 text-sm font-medium text-red-200 hover:bg-red-800/70"
                   >
                     Delete
                   </button>
                 </li>
               ))
             ) : (
-              <p className="p-4 text-gray-500">You haven't created any links yet. Add one above!</p>
+              <p className="p-4 text-gray-400">You haven't created any links yet. Add one above!</p>
             )}
           </ul>
         </div>

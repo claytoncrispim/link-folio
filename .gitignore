@@ -1,3 +1,5 @@
 .env
-# Ignore server-specific config
+client/.env
+server/.env
+*.env.local
 server/nodemon.json

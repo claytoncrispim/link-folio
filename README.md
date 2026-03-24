@@ -70,6 +70,47 @@ Docker & Docker Compose: For containerizing the application and database.
 
 To get a local copy up and running, follow these simple steps.
 
+### ⚡ Quick Start with Makefile
+
+From the project root, you can use these shortcuts:
+
+```sh
+make help
+make install
+```
+
+Run locally:
+
+```sh
+make dev-server   # backend only
+make dev-client   # frontend only
+make dev          # backend + frontend together
+```
+
+Other useful commands:
+
+```sh
+make build-client
+make test-server
+```
+
+### 🛠️ Local API troubleshooting
+
+If the client shows a **Local API connection warning**:
+
+1. Start backend locally:
+    ```sh
+    make dev-server
+    ```
+2. Ensure client API URL is correct in `client/.env`:
+    ```env
+    VITE_API_BASE_URL=http://localhost:10000
+    ```
+3. Restart frontend so env changes are loaded:
+    ```sh
+    make dev-client
+    ```
+
 ### Prerequisites
 
 You must have Docker and Docker Compose installed on your local machine.
@@ -102,15 +143,18 @@ Installation & Launch
     ```sh
         docker compose up --build
     ```
-5. Launch the Frontend Client
+5. Launch local development (canonical workflow)
 
-    Open a second terminal.
-
-    Navigate into the client directory and start the Vite dev server.
+    From the project root, use the Makefile commands above:
     ```sh
-        cd client
-        npm install
-        npm run dev
+        make install
+        make dev
+    ```
+
+    Or run frontend/backend separately:
+    ```sh
+        make dev-server
+        make dev-client
     ```
 6. Open the app
 
